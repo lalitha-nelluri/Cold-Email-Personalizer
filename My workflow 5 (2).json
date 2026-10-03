@@ -1,0 +1,343 @@
+{
+  "name": "My workflow 5",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4c1adab5-2dbd-4613-959e-847ba7ebcaa8",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd986364-6c57-465e-9e8f-b333ca9b493a",
+              "name": "company_name",
+              "value": "ABC Technologies",
+              "type": "string"
+            },
+            {
+              "id": "a64a14b1-1458-4b1e-b32a-590af6764e4b",
+              "name": "website_url",
+              "value": "https://www.microsoft.com",
+              "type": "string"
+            },
+            {
+              "id": "3abcdd2a-de03-4d81-90b8-cada618e4440",
+              "name": "prospect_name",
+              "value": "Ram",
+              "type": "string"
+            },
+            {
+              "id": "b402a203-5a26-46c3-b78e-0470b12fa50d",
+              "name": "sales_rep",
+              "value": "Lalitha",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "0ef62148-c4cf-4e63-92f0-360b9f64e6a2",
+      "name": "Company Details"
+    },
+    {
+      "parameters": {
+        "url": "https://www.microsoft.com",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "c28ef141-427a-4112-82f3-5c4ded7da99d",
+      "name": "Crawl Website"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are a company research assistant.\n\nAnalyze the website information below.\n\nCompany:\n{{ $(\"Company Details\").first().json.company_name }}\n\nWebsite:\n{{ $(\"Company Details\").first().json.website_url }}\n\nWebsite content:\n{{ $json.website_text }}\n\nIdentify ONLY information that is explicitly supported by the website content.\n\nLook for:\n1. Recent company achievements\n2. New product launches\n3. Awards\n4. Partnerships\n5. Expansion\n6. Important announcements\n\nReturn:\n\nRecent Update:\nSource Evidence:\nWhy It Is Relevant:\n\nIf there is no reliable recent information, say:\n\"No reliable recent information found.\"\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1088,
+        0
+      ],
+      "id": "c3a283a1-8ee8-4dc0-abb2-33477a986338",
+      "name": "AI Company Analysis",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nconst text = JSON.stringify(input)\n  .replace(/<script[\\s\\S]*?<\\/script>/gi, \"\")\n  .replace(/<style[\\s\\S]*?<\\/style>/gi, \"\")\n  .replace(/<[^>]+>/g, \" \")\n  .replace(/\\s+/g, \" \")\n  .trim();\n\nreturn [\n  {\n    json: {\n      company_name: $(\"Company Details\").first().json.company_name,\n      website_url: $(\"Company Details\").first().json.website_url,\n      prospect_name: $(\"Company Details\").first().json.prospect_name,\n      website_text: text.substring(0, 15000)\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        0
+      ],
+      "id": "f806bbb1-bc69-4173-80da-c2c3762d194b",
+      "name": "Clean Website Text"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "content",
+              "cssSelector": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "a6c47657-afd7-41e2-be0c-fc8f15b3b260",
+      "name": "Extract Website Content "
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=You are an expert cold-email personalization assistant.\n\nCompany:\n{{ $(\"Company Details\").first().json.company_name }}\n\nProspect:\n{{ $(\"Company Details\").first().json.prospect_name }}\n\nVerified company information:\n{{ $json.text }}\n\nCreate ONE natural 1–2 sentence cold-email opening line.\n\nRules:\n- Use only verified information provided above.\n- Do not invent achievements.\n- Do not exaggerate.\n- Keep it professional and natural.\n- Mention the specific company update.\n- Do not write the complete email.\n- Return only the icebreaker."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "3dd094d5-4a97-4541-824f-0c6965e2d675",
+      "name": "Generate Icebreaker",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "499c5a19-3ba6-49d7-a192-b405aca5dc0f",
+              "name": "company_name",
+              "value": "={{ $(\"Company Details\").first().json.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "5ad5db81-e83a-452c-a2d0-d734241f11e6",
+              "name": "source_url",
+              "value": "https://www.microsoft.com/news",
+              "type": "string"
+            },
+            {
+              "id": "46d77797-2b8d-4113-810f-ca00c38e0bfa",
+              "name": "personalized_icebreaker",
+              "value": "I noticed ABC Technologies recently launched its AI-powered logistics platform — exciting to see your team expanding into intelligent logistics.",
+              "type": "string"
+            },
+            {
+              "id": "040a5283-96d9-4437-afee-be741dec5919",
+              "name": "Recent Update",
+              "value": " Launched an AI-powered logistics platform",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1824,
+        0
+      ],
+      "id": "d6cc263c-904d-4dbe-8eff-a93a383777a9",
+      "name": "Final Output"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "nellurilalitha4@gmail.com",
+        "subject": "Human Review Required – Cold Email",
+        "message": "=Company: {{ $json.company_name }}\n\nAI Generated Icebreaker:\n{{ $json.personalized_icebreaker }}\n\nPlease review this content before the email is sent.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2000,
+        0
+      ],
+      "id": "fb78a144-a9d7-4ea6-833c-2435a50b4fd5",
+      "name": "Send a message",
+      "webhookId": "ac79dd43-7772-4c1e-bef6-bfdc761b0dbf",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "3lFBPq5ULrCdZeaZ",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Company Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Company Details": {
+      "main": [
+        [
+          {
+            "node": "Crawl Website",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crawl Website": {
+      "main": [
+        [
+          {
+            "node": "Extract Website Content ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Website Text": {
+      "main": [
+        [
+          {
+            "node": "AI Company Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Website Content ": {
+      "main": [
+        [
+          {
+            "node": "Clean Website Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Company Analysis": {
+      "main": [
+        [
+          {
+            "node": "Generate Icebreaker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Icebreaker": {
+      "main": [
+        [
+          {
+            "node": "Final Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Output": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "099d82fa-b6eb-4aaa-87dc-59223f8e1a58",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "50b687d099fea02e7db6a6dab3ffbe9e64f753f31714cf8c76f413efdb4e1cd5"
+  },
+  "nodeGroups": [],
+  "id": "jCzOu0xb1LFW64e2",
+  "tags": []
+}
