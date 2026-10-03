@@ -648,11 +648,3 @@ The goal is to make prospect research faster, more consistent, and more personal
 ---
 
 ⭐ Thank You
-
-Cold Email Personalizer – Team 19
-
-### One important thing before you commit
-
-Your uploaded n8n JSON contains **credential/configuration information**. Before making the GitHub repository public, check that the JSON does **not contain any actual API keys, passwords, OAuth tokens, or other secrets**. If it does, remove/replace those secrets before keeping the repository public.
-
-Your PPT and workflow files are already uploaded to the GitHub repository, so after updating `README.md`, your repository will have the main documentation + presentation + n8n workflow together. 2 3
